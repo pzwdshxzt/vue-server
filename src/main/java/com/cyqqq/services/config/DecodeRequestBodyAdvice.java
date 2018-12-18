@@ -1,6 +1,9 @@
-package com.cyqqq.annotation;
+package com.cyqqq.services.config;
 
-import com.alibaba.druid.util.StringUtils;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.cyqqq.annotation.RequestDecode;
+import com.cyqqq.constant.Constants;
 import com.cyqqq.model.enums.SecurityMethod;
 import com.cyqqq.util.AesEncryptUtils;
 import org.slf4j.Logger;
@@ -13,8 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdvice;
-
-import javax.websocket.DecodeException;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.util.stream.Collectors;
@@ -47,10 +48,11 @@ public class DecodeRequestBodyAdvice implements RequestBodyAdvice {
         if (requestDecode == null) {
             return request;
         }
-        String encodeMethod = request.getHeaders().get("encode").get(0);
-        if (StringUtils.isEmpty(encodeMethod)) {
-            return request;
+        String encodeMethod = "AES";
+        if ( request.getHeaders().containsValue("encode")){
+            encodeMethod = request.getHeaders().get("encode").get(0);
         }
+
         SecurityMethod encodeMethodEnum = SecurityMethod.getByCode(encodeMethod);
         switch (encodeMethodEnum){
             case NULL:
@@ -59,12 +61,19 @@ public class DecodeRequestBodyAdvice implements RequestBodyAdvice {
                 InputStream is = request.getBody();
                 String req = new BufferedReader(new InputStreamReader(is)).lines().collect(Collectors.joining(System.lineSeparator()));
                 try {
-                    String reqstr = AesEncryptUtils.decrypt(req);
-                    log.info("解密完成: {}", reqstr);
+                    log.info("请求参数" + req);
+
+                    JSONObject jsonObject = (JSONObject) JSONObject.parse(req);
+                    if (jsonObject.containsKey(Constants.DATA)){
+                        String reqstr = AesEncryptUtils.decrypt((String)jsonObject.get(Constants.DATA));
+                        jsonObject.put(Constants.DATA,JSON.parseObject(reqstr));
+                        log.info("解密完成: data {}", reqstr);
+                    }
+
                     return new HttpInputMessage() {
                         @Override
                         public InputStream getBody() throws IOException {
-                            return new ByteArrayInputStream(reqstr.getBytes("UTF-8"));
+                            return new ByteArrayInputStream(jsonObject.toString().getBytes("UTF-8"));
                         }
 
                         @Override
@@ -74,8 +83,7 @@ public class DecodeRequestBodyAdvice implements RequestBodyAdvice {
                     };
 
                 } catch (Exception e) {
-                    e.printStackTrace();
-                    log.warn("解密失败 待解密密文: {}", req, e);
+                    log.warn("解密失败 待解密密文: {}", req);
                     try {
                         throw e;
                     } catch (Exception e1) {

@@ -2,6 +2,10 @@ package com.cyqqq.util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -14,7 +18,7 @@ import java.util.Date;
  * @Date : 2018/11/30 10:42
  * @Version :
  */
-public final  class DateUtils {
+public final class DateUtils {
 
     /**
      * 英文简写（默认）如：2010-12-01
@@ -100,10 +104,8 @@ public final  class DateUtils {
     /**
      * 使用用户格式格式化日期
      *
-     * @param date
-     *            日期
-     * @param pattern
-     *            日期格式
+     * @param date    日期
+     * @param pattern 日期格式
      * @return
      */
     public static String format(Date date, String pattern) {
@@ -118,8 +120,7 @@ public final  class DateUtils {
     /**
      * 使用预设格式提取字符串日期
      *
-     * @param strDate
-     *            日期字符串
+     * @param strDate 日期字符串
      * @return
      */
     public static Date parse(String strDate) {
@@ -129,10 +130,8 @@ public final  class DateUtils {
     /**
      * 使用用户格式提取字符串日期
      *
-     * @param strDate
-     *            日期字符串
-     * @param pattern
-     *            日期格式
+     * @param strDate 日期字符串
+     * @param pattern 日期格式
      * @return
      */
     public static Date parse(String strDate, String pattern) {
@@ -148,10 +147,8 @@ public final  class DateUtils {
     /**
      * 在日期上增加数个整月
      *
-     * @param date
-     *            日期
-     * @param n
-     *            要增加的月数
+     * @param date 日期
+     * @param n    要增加的月数
      * @return
      */
     public static Date addMonth(Date date, int n) {
@@ -164,10 +161,8 @@ public final  class DateUtils {
     /**
      * 在日期上增加天数
      *
-     * @param date
-     *            日期
-     * @param n
-     *            要增加的天数
+     * @param date 日期
+     * @param n    要增加的天数
      * @return
      */
     public static Date addDay(Date date, int n) {
@@ -189,8 +184,7 @@ public final  class DateUtils {
     /**
      * 获取日期年份
      *
-     * @param date
-     *            日期
+     * @param date 日期
      * @return
      */
     public static String getYear(Date date) {
@@ -200,8 +194,7 @@ public final  class DateUtils {
     /**
      * 按默认格式的字符串距离今天的天数
      *
-     * @param date
-     *            日期字符串
+     * @param date 日期字符串
      * @return
      */
     public static int countDays(String date) {
@@ -215,10 +208,8 @@ public final  class DateUtils {
     /**
      * 按用户格式字符串距离今天的天数
      *
-     * @param date
-     *            日期字符串
-     * @param format
-     *            日期格式
+     * @param date   日期字符串
+     * @param format 日期格式
      * @return
      */
     public static int countDays(String date, String format) {
@@ -227,5 +218,46 @@ public final  class DateUtils {
         c.setTime(parse(date, format));
         long t1 = c.getTime().getTime();
         return (int) (t / 1000 - t1 / 1000) / 3600 / 24;
+    }
+
+    /**
+     * date2比date1多的天数
+     *
+     * @param date1
+     * @param date2
+     * @return
+     */
+    public static int differentDays(LocalDateTime date1, Date date2) {
+        ZoneId zoneId = ZoneId.systemDefault();
+        ZonedDateTime zdt = date1.atZone(zoneId);
+        Date date = Date.from(zdt.toInstant());
+        Calendar cal1 = Calendar.getInstance();
+        cal1.setTime(date);
+
+        Calendar cal2 = Calendar.getInstance();
+        cal2.setTime(date2);
+        int day1 = cal1.get(Calendar.DAY_OF_YEAR);
+        int day2 = cal2.get(Calendar.DAY_OF_YEAR);
+
+        int year1 = cal1.get(Calendar.YEAR);
+        int year2 = cal2.get(Calendar.YEAR);
+        //同一年
+        if (year1 != year2) {
+            int timeDistance = 0;
+            for (int i = year1; i < year2; i++) {
+                //闰年
+                if (i % 4 == 0 && i % 100 != 0 || i % 400 == 0) {
+                    timeDistance += 366;
+                } else    //不是闰年
+                {
+                    timeDistance += 365;
+                }
+            }
+
+            return timeDistance + (day2 - day1);
+            //不同年
+        } else    {
+            return day2 - day1;
+        }
     }
 }

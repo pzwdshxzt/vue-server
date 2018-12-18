@@ -1,7 +1,12 @@
 package com.cyqqq.model;
 
+import com.alibaba.druid.support.json.JSONUtils;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.cyqqq.util.DateUtils;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,7 +17,8 @@ import java.util.Map;
  * @email 83265414@qq.com
  * @date 2018年10月21日 19:29:34
  */
-public class R extends HashMap<String, Object> {
+public class R extends HashMap<String, Object> implements Serializable {
+
     private static final long serialVersionUID = 1L;
 
     public R() {
@@ -20,6 +26,7 @@ public class R extends HashMap<String, Object> {
         put("msg", "交易成功");
         put("date", DateUtils.getNowDate());
         put("time", DateUtils.getNowTime());
+        put("data", "");
     }
 
     public static R error() {
@@ -36,6 +43,7 @@ public class R extends HashMap<String, Object> {
         r.put("msg", msg);
         r.put("date", DateUtils.getNowDate());
         r.put("time", DateUtils.getNowTime());
+        r.put("data", "");
         return r;
     }
 
@@ -45,6 +53,7 @@ public class R extends HashMap<String, Object> {
         r.put("msg", msg);
         r.put("date", DateUtils.getNowDate());
         r.put("time", DateUtils.getNowTime());
+        r.put("data", "");
         return r;
     }
 
@@ -54,6 +63,7 @@ public class R extends HashMap<String, Object> {
         r.put("msg", "交易成功");
         r.put("date", DateUtils.getNowDate());
         r.put("time", DateUtils.getNowTime());
+        r.put("data", "");
         r.putAll(map);
         return r;
     }
@@ -66,5 +76,10 @@ public class R extends HashMap<String, Object> {
     public R put(String key, Object value) {
         super.put(key, value);
         return this;
+    }
+
+    @Override
+    public String toString() {
+        return JSONUtils.toJSONString(this);
     }
 }
